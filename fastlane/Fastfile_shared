@@ -1,0 +1,83 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Displays the podspec version number."
+  lane :show_podspec_version do
+    version = version_get_podspec(
+      path: ENV["podspec"]
+    )
+    UI.success("Current podspec version: #{version}")
+  end
+
+  desc "Bumps the project version number. Defaults to bumping the patch number, use 'type:minor' or 'type:major' to override, or set explicitly with version:x.y.z"
+  lane :bump_project_version do |options|
+    if version_number = options[:version]
+      new_version_number = increment_version_number(
+        version_number: "#{version_number}",
+        xcodeproj: ENV["xcodeproj"]
+      )
+    else
+      new_version_number = increment_version_number(
+        bump_type: "#{options[:type]}",
+        xcodeproj: ENV["xcodeproj"]
+      )
+    end
+  end
+
+  desc "Bumps the podspec version number. Defaults to bumping the patch number, use 'type:minor' or 'type:major' to override."
+  lane :bump_podspec do |options|
+    version_number = options[:version]
+    if version_number == nil then
+      version_bump_podspec(
+        path: ENV["podspec"],
+        bump_type: "#{options[:type]}"
+      )
+    else
+      puts("in bump_podspec, version_number = #{version_number}")
+      version_bump_podspec(
+        path: ENV["podspec"],
+        version_number: "#{version_number}"
+      )
+    end
+  end
+
+  desc "Creates a new version of the pod by incrementing the patch, minor or major number of the version number and then commits the changes.
+  Defaults to bumping the patch version.
+  Use 'type:minor' or 'type:major' to override.
+  Use 'version:x.y.z' if you want to set a fixed version number.
+  Use 'settings:true' if you want to include the settings bundle (if you have one) in the version bump.
+  "
+  lane :create_new_version do |options|
+    type = options[:type] == nil ? 'patch' : options[:type]
+    include_settings = options[:settings] == nil ? false : options[:settings]
+    new_version_number = bump_project_version(type: type, version: options[:version])
+    puts("New version: #{new_version_number}")
+
+    bump_podspec(version: "#{new_version_number}", type: "#{type}")
+
+    add_git_tag(
+      tag: "#{new_version_number}"
+    )
+    push_git_tags
+
+    extra_includes = []
+    extra_includes[0] = ENV["podspec"]
+    # extra_includes[1] = "**/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist"
+    commit_version_bump(
+      settings: "#{include_settings}",
+      include: extra_includes,
+      xcodeproj: ENV["xcodeproj"]
+    )
+
+    push_pod()
+  end
+
+  lane :push_pod do
+    pod_push(
+      path: ENV["podspec"],
+      repo: ENV["repo"],
+      allow_warnings: true
+    )
+  end
+
+end
