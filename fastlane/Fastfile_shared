@@ -55,11 +55,6 @@ platform :ios do
 
     bump_podspec(version: "#{new_version_number}", type: "#{type}")
 
-    add_git_tag(
-      tag: "#{new_version_number}"
-    )
-    push_git_tags
-
     extra_includes = []
     extra_includes[0] = ENV["podspec"]
     # extra_includes[1] = "**/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist"
@@ -69,7 +64,13 @@ platform :ios do
       xcodeproj: ENV["xcodeproj"]
     )
 
+    add_git_tag(
+      tag: "#{new_version_number}"
+    )
+
     push_pod()
+
+    push_git_tags
   end
 
   lane :push_pod do
