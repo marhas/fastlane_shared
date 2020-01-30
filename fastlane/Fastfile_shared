@@ -67,10 +67,9 @@ platform :ios do
     add_git_tag(
       tag: "#{new_version_number}"
     )
+    push_git_tags
 
     push_pod()
-
-    push_git_tags
   end
 
   lane :push_pod do
