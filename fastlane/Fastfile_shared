@@ -15,19 +15,20 @@ platform :ios do
     UI.success("Current podspec version: #{version}")
   end
 
-  desc "Bumps the project version number. Defaults to bumping the patch number, use 'type:minor' or 'type:major' to override, or set explicitly with version:x.y.z"
+  desc "Bumps the project version number. Defaults to bumping the patch number, use 'type:minor' or 'type:major' to override. Use version parameter to set the version number explicitly, eg: version:12.1.2. If version parameter is used, type is ignored."
   lane :bump_project_version do |options|
-    if version_number = options[:version]
-      new_version_number = increment_version_number(
-        version_number: "#{version_number}",
-        xcodeproj: ENV["xcodeproj"]
-      )
+    params = {}
+    if options[:version]
+      params[:version_number] = options[:version]
     else
-      new_version_number = increment_version_number(
-        bump_type: "#{options[:type]}",
-        xcodeproj: ENV["xcodeproj"]
-      )
+      params[:bump_type] = options[:type] || 'patch'
     end
+    new_version_number = increment_version_number(params)
+  end
+
+  lane :update_build_number do
+      build_number = number_of_commits
+      increment_build_number(build_number: build_number)
   end
 
   desc "Bumps the podspec version number. Defaults to bumping the patch number, use 'type:minor' or 'type:major' to override."
