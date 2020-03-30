@@ -1,6 +1,12 @@
 default_platform(:ios)
 
 platform :ios do
+  desc "Displays the current project version number"
+  lane :show_project_version do
+    project_version_number = get_version_number
+    UI.success("Current project version: #{project_version_number}")
+  end
+
   desc "Displays the podspec version number."
   lane :show_podspec_version do
     version = version_get_podspec(
