@@ -66,7 +66,7 @@ platform :ios do
     extra_includes[0] = ENV["podspec"]
     # extra_includes[1] = "**/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist"
     commit_version_bump(
-      settings: #{include_settings},
+      settings: include_settings,
       include: extra_includes,
       xcodeproj: ENV["xcodeproj"]
     )
